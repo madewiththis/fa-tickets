@@ -1,0 +1,3 @@
+- use material 3 compeonts
+- make a global style sheet that acomodates light and dark mode
+- keep colors strictly monochrome
