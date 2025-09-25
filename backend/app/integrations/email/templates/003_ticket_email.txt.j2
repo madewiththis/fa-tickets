@@ -1,0 +1,8 @@
+Event: {{ event_title }}
+When: {{ event_when }}
+Your check-in code: {{ code }}
+
+Present this code (or QR) at check-in.
+{% if qr_url %}
+QR: {{ qr_url }}
+{% endif %}

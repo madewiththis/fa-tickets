@@ -1,0 +1,14 @@
+{% if buyer_name %}Hi {{ buyer_name }},
+
+{% endif %}You have reserved {{ ticket_count }} tickets to {{ event_title }}.
+Your reservation will expire on {{ reservation_expires_at }}.
+
+Event Details
+{{ event_title }}
+{{ event_datetime }}
+
+Tickets
+{{ ticket_lines }}
+Total due: {{ total_thb }}
+
+{% if secure_payment_link %}Secure your tickets: {{ secure_payment_link }}{% endif %}

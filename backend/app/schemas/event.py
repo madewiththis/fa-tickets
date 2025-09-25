@@ -17,7 +17,8 @@ class EventCreate(BaseModel):
     contact_phone: str | None = Field(default=None, max_length=64)
     contact_email: EmailStr | None = None
     contact_url: AnyUrl | None = None
-    capacity: int = Field(ge=1)
+    # Capacity deprecated; optional for backward compatibility
+    capacity: int | None = Field(default=None, ge=1)
 
 
 class EventRead(BaseModel):
@@ -35,7 +36,9 @@ class EventRead(BaseModel):
     contact_phone: str | None = None
     contact_email: EmailStr | None = None
     contact_url: AnyUrl | None = None
-    capacity: int
+    # Capacity retained for backward compatibility
+    capacity: int | None = None
+    public_id: str | None = None
 
     class Config:
         from_attributes = True

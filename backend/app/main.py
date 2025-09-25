@@ -12,8 +12,11 @@ from app.api.routes.tickets import router as tickets_router
 from app.api.routes.checkin import router as checkin_router
 from app.api.routes.reports import router as reports_router
 from app.api.routes.content import router as content_router
+from app.api.routes.admin import router as admin_router
 from app.api.deps import require_auth
 from app.api.routes.utils import router as utils_router
+from app.api.routes.purchases import router as purchases_router
+from app.api.routes.contacts import router as contacts_router
 
 app = FastAPI(title="FA Tickets MVP")
 
@@ -41,10 +44,13 @@ def root() -> JSONResponse:
 api = APIRouter(dependencies=[Depends(require_auth)])
 api.include_router(events_router)
 api.include_router(tickets_router)
+api.include_router(purchases_router)
+api.include_router(contacts_router)
 api.include_router(checkin_router)
 api.include_router(reports_router)
 api.include_router(content_router)
 api.include_router(utils_router)
+api.include_router(admin_router)
 
 app.include_router(api)
 

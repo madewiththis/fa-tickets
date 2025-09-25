@@ -24,6 +24,7 @@ class Event(Base):
     contact_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     contact_url: Mapped[str | None] = mapped_column(String(1024), nullable=True)
     capacity: Mapped[int] = mapped_column(Integer, nullable=False)
+    public_id: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True)
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

@@ -23,13 +23,24 @@ class Ticket(Base):
     ticket_type_id: Mapped[int | None] = mapped_column(ForeignKey("ticket_type.id", ondelete="SET NULL"), nullable=True)
     customer_id: Mapped[int | None] = mapped_column(ForeignKey("customer.id", ondelete="SET NULL"), nullable=True)
     short_code: Mapped[str | None] = mapped_column(String(3), nullable=True)
+    # Human-friendly printed number that can be released/reused
+    ticket_number: Mapped[str | None] = mapped_column(String(20), nullable=True)
     status: Mapped[str] = mapped_column(
-        Enum("available", "assigned", "delivered", "checked_in", "void", name="ticket_status"),
+        Enum("available", "held", "assigned", "delivered", "checked_in", "void", name="ticket_status"),
         nullable=False,
         server_default="available",
     )
     payment_status: Mapped[str] = mapped_column(
-        Enum("unpaid", "paid", "waived", name="payment_status"),
+        Enum(
+            "unpaid",
+            "paid",
+            "waived",
+            "refunding",
+            "refunded",
+            "voiding",
+            "voided",
+            name="payment_status",
+        ),
         nullable=False,
         server_default="unpaid",
     )
@@ -42,12 +53,17 @@ class Ticket(Base):
     assigned_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     delivered_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     checked_in_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    attendance_refunded: Mapped[bool] = mapped_column(default=False, nullable=False)
+    holder_contact_id: Mapped[int | None] = mapped_column(ForeignKey("contact.id", ondelete="SET NULL"), nullable=True)
+    purchase_id: Mapped[int | None] = mapped_column(ForeignKey("purchase.id", ondelete="SET NULL"), nullable=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     event = relationship("Event")
     ticket_type = relationship("TicketType")
     customer = relationship("Customer")
+    holder_contact = relationship("Contact", foreign_keys=[holder_contact_id])
+    purchase = relationship("Purchase")
 
     __table_args__ = (
         UniqueConstraint("uuid", name="uq_ticket_uuid"),
@@ -55,4 +71,5 @@ class Ticket(Base):
         Index("ix_ticket_event_id", "event_id"),
         Index("ix_ticket_customer_id", "customer_id"),
         Index("ix_ticket_ticket_type_id", "ticket_type_id"),
+        # partial unique index for event+ticket_number will be created in migration
     )

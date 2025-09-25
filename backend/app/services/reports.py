@@ -52,7 +52,7 @@ def reconciliation_summary(db: Session, *, event_id: int) -> dict:
     waived_count = counts_by_payment.get("waived", 0)
 
     return {
-        "event": {"id": ev.id, "title": ev.title, "capacity": ev.capacity, "starts_at": ev.starts_at, "ends_at": ev.ends_at},
+        "event": {"id": ev.id, "title": ev.title, "starts_at": ev.starts_at, "ends_at": ev.ends_at},
         "tickets_total": total_tickets,
         "available": available,
         "assigned": assigned,
@@ -72,7 +72,6 @@ def reconciliation_csv(summary: dict) -> str:
         "metric,value",
         f"event_id,{summary['event']['id']}",
         f"event_title,{summary['event']['title']}",
-        f"capacity,{summary['event']['capacity']}",
         f"tickets_total,{summary['tickets_total']}",
         f"available,{summary['available']}",
         f"assigned,{summary['assigned']}",

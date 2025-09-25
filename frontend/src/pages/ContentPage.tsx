@@ -1,4 +1,8 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { PageHeader, EmptyState, CopyButton } from '@/components/kit'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { api } from '../lib/api/client'
 
 type EventItem = any
@@ -47,8 +51,7 @@ export default function ContentPage() {
   }
 
   function purchaseLink(evId: number, ttId: number) {
-    const origin = window.location.origin
-    return `${origin}/#purchase?event_id=${evId}&ticket_type_id=${ttId}`
+    return `/purchase?event_id=${evId}&ticket_type_id=${ttId}`
   }
 
   async function copy(text: string) {
@@ -60,44 +63,48 @@ export default function ContentPage() {
   }
 
   return (
-    <section>
-      <h2>Content Management</h2>
+    <section className="space-y-4">
+      <PageHeader title="Content Management" />
       {loading && <p>Loading…</p>}
-      {err && <p style={{ color:'#b00020' }}>{err}</p>}
-      <div style={{ display:'grid', gap:12 }}>
+      {err && <p className="text-sm text-destructive">{err}</p>}
+      <div className="grid gap-3">
         {events.map(ev => (
-          <div key={ev.id} style={{ border:'1px solid #ddd', borderRadius:6, padding:12 }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <div>
-                <div style={{ fontWeight:600 }}>{ev.title}</div>
-                <div style={{ color:'#555' }}>Starts: {formatDate(ev.starts_at)} {ev.ends_at ? `• Ends: ${formatDate(ev.ends_at)}` : ''}</div>
-                <div style={{ color:'#555' }}>{ev.location || ''}</div>
-              </div>
-              <button onClick={()=> toggle(ev.id)}>{expanded[ev.id] ? 'Hide' : 'Show'} ticket types</button>
-            </div>
-            {expanded[ev.id] && (
-              <div style={{ marginTop:10 }}>
-                {(types[ev.id] || []).length === 0 && (
-                  <div style={{ color:'#666' }}>No ticket types.</div>
-                )}
-                {(types[ev.id] || []).map((t:any) => (
-                  <div key={t.id} style={{ display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center', padding:'8px 0', borderTop:'1px solid #eee' }}>
-                    <div>
-                      <div>{t.name} {t.active ? '' : '(inactive)'} {t.price_baht != null ? `— ${t.price_baht} THB` : ''}</div>
-                      <div style={{ color:'#555', fontSize:12 }}>Link: <code>{purchaseLink(ev.id, t.id)}</code></div>
+          <Card key={ev.id}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">{ev.title}</CardTitle>
+              <div className="text-xs text-muted-foreground">Starts: {formatDate(ev.starts_at)} {ev.ends_at ? `• Ends: ${formatDate(ev.ends_at)}` : ''}</div>
+              <div className="text-xs text-muted-foreground">{ev.location || ''}</div>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <Accordion type="single" collapsible>
+                <AccordionItem value="types">
+                  <AccordionTrigger>Ticket types</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2">
+                      {(types[ev.id] || []).length === 0 && (
+                        <div className="text-sm text-muted-foreground">No ticket types.</div>
+                      )}
+                      {(types[ev.id] || []).map((t:any) => (
+                        <div key={t.id} className="grid grid-cols-[1fr_auto] items-center gap-2 border-t pt-2">
+                          <div>
+                            <div className="text-sm">{t.name} {t.active ? '' : '(inactive)'} {t.price_baht != null ? `— ${t.price_baht} THB` : ''}</div>
+                            <div className="text-xs text-muted-foreground">Link: <code>{purchaseLink(ev.id, t.id)}</code></div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Link to={purchaseLink(ev.id, t.id)} className="px-3 py-1 border rounded text-sm">Open</Link>
+                            <CopyButton value={window.location.origin + purchaseLink(ev.id, t.id)}>{copied === purchaseLink(ev.id, t.id) ? 'Copied!' : 'Copy link'}</CopyButton>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div style={{ display:'flex', gap:8 }}>
-                      <button onClick={()=> window.location.hash = `#purchase?event_id=${ev.id}&ticket_type_id=${t.id}`}>Open</button>
-                      <button onClick={()=> copy(purchaseLink(ev.id, t.id))}>{copied === purchaseLink(ev.id, t.id) ? 'Copied!' : 'Copy link'}</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </CardContent>
+          </Card>
         ))}
         {events.length === 0 && !loading && (
-          <div style={{ color:'#666' }}>No events found.</div>
+          <EmptyState title="No events found." description="Create an event to generate purchase links." />
         )}
       </div>
     </section>

@@ -6,10 +6,17 @@ from app.api.deps import db_session
 from app.db.models.event import Event
 from app.db.models.ticket import Ticket
 from app.schemas.event import EventCreate, EventRead, EventUpdate
+import uuid
 from app.schemas.ticket import TicketRead, AttendeeRead
 from app.schemas.ticket_type import TicketTypeRead, TicketTypeCreate, TicketTypeUpdate
+from app.db.models.event_promotion import EventPromotion
+from app.schemas.event_promotion import EventPromotionRead, EventPromotionUpsert
 from app.db.models.customer import Customer
 from app.db.models.ticket_type import TicketType
+from app.db.models.contact import Contact
+from app.db.models.purchase import Purchase
+from sqlalchemy import func, case
+from app.db.models.purchase import Purchase
 from sqlalchemy import select, func
 
 router = APIRouter(prefix="/events", tags=["events"])
@@ -39,7 +46,8 @@ def create_event(payload: EventCreate, db: Session = Depends(db_session)):
         title=payload.title,
         starts_at=payload.starts_at,
         ends_at=payload.ends_at,
-        capacity=payload.capacity,
+        # Capacity is deprecated; default to a high number if not provided
+        capacity=payload.capacity or 1_000_000,
         location_name=location_name,
         location_address=payload.location_address,
         address_maps_link=str(payload.address_maps_link) if payload.address_maps_link else None,
@@ -47,6 +55,7 @@ def create_event(payload: EventCreate, db: Session = Depends(db_session)):
         contact_phone=payload.contact_phone,
         contact_email=str(payload.contact_email) if payload.contact_email else None,
         contact_url=str(payload.contact_url) if payload.contact_url else None,
+        public_id=str(uuid.uuid4()),
     )
     db.add(ev)
     db.commit()
@@ -59,6 +68,11 @@ def get_event(event_id: int, db: Session = Depends(db_session)):
     ev = db.get(Event, event_id)
     if not ev:
         raise HTTPException(status_code=404, detail="Event not found")
+    if not ev.public_id:
+        ev.public_id = str(uuid.uuid4())
+        db.add(ev)
+        db.commit()
+        db.refresh(ev)
     return ev
 
 
@@ -118,7 +132,7 @@ def seed_event_tickets(event_id: int, db: Session = Depends(db_session)):
 @router.get("/{event_id}/tickets", response_model=list[TicketRead])
 def list_event_tickets(
     event_id: int,
-    status: Literal["available", "assigned", "delivered", "checked_in", "void"] | None = Query(None),
+    status: Literal["available", "held", "assigned", "delivered", "checked_in", "void"] | None = Query(None),
     db: Session = Depends(db_session),
 ):
     ev = db.get(Event, event_id)
@@ -142,10 +156,14 @@ def list_event_attendees(event_id: int, db: Session = Depends(db_session)):
         db.execute(
             select(
                 Ticket.id.label("ticket_id"),
+                Ticket.uuid.label("ticket_uuid"),
                 Ticket.short_code,
+                Ticket.ticket_number,
                 Ticket.status,
                 Ticket.payment_status,
                 Ticket.checked_in_at,
+                Ticket.purchase_id,
+                Purchase.external_payment_ref,
                 Customer.id.label("customer_id"),
                 Customer.first_name,
                 Customer.last_name,
@@ -153,6 +171,7 @@ def list_event_attendees(event_id: int, db: Session = Depends(db_session)):
                 Customer.phone,
             )
             .join(Customer, Customer.id == Ticket.customer_id)
+            .outerjoin(Purchase, Purchase.id == Ticket.purchase_id)
             .where(Ticket.event_id == event_id)
             .order_by(Ticket.id.asc())
         )
@@ -160,6 +179,59 @@ def list_event_attendees(event_id: int, db: Session = Depends(db_session)):
         .all()
     )
     return [dict(r) for r in rows]
+
+
+@router.get("/{event_id}/purchases")
+def list_event_purchases(event_id: int, db: Session = Depends(db_session)):
+    ev = db.get(Event, event_id)
+    if not ev:
+        raise HTTPException(status_code=404, detail="Event not found")
+    q = (
+        select(
+            Purchase.id,
+            Purchase.external_payment_ref,
+            Purchase.total_amount,
+            Purchase.currency,
+            Purchase.created_at,
+            func.count(Ticket.id).label("tickets"),
+            func.coalesce(func.sum(TicketType.price_baht), 0).label("sum_price"),
+            func.coalesce(func.sum(case((Ticket.payment_status == 'paid', 1), else_=0)), 0).label('paid_count'),
+            func.coalesce(func.sum(case((Ticket.payment_status == 'unpaid', 1), else_=0)), 0).label('unpaid_count'),
+            func.coalesce(func.sum(case((Ticket.payment_status == 'waived', 1), else_=0)), 0).label('waived_count'),
+            Contact.first_name.label('buyer_first_name'),
+            Contact.last_name.label('buyer_last_name'),
+            Contact.email.label('buyer_email'),
+            Contact.phone.label('buyer_phone'),
+        )
+        .join(Ticket, Ticket.purchase_id == Purchase.id)
+        .join(Contact, Contact.id == Purchase.buyer_contact_id)
+        .outerjoin(TicketType, TicketType.id == Ticket.ticket_type_id)
+        .where(Ticket.event_id == event_id)
+        .group_by(
+            Purchase.id,
+            Purchase.external_payment_ref,
+            Purchase.total_amount,
+            Purchase.currency,
+            Purchase.created_at,
+            Contact.first_name,
+            Contact.last_name,
+            Contact.email,
+            Contact.phone,
+        )
+        .order_by(Purchase.created_at.desc())
+    )
+    rows = db.execute(q).mappings().all()
+    result = []
+    for r in rows:
+        d = dict(r)
+        d['buyer'] = {
+            'first_name': d.pop('buyer_first_name', None),
+            'last_name': d.pop('buyer_last_name', None),
+            'email': d.pop('buyer_email', None),
+            'phone': d.pop('buyer_phone', None),
+        }
+        result.append(d)
+    return result
 
 
 @router.get("/{event_id}/ticket_types", response_model=list[TicketTypeRead])
@@ -176,15 +248,7 @@ def create_ticket_type(event_id: int, payload: TicketTypeCreate, db: Session = D
     ev = db.get(Event, event_id)
     if not ev:
         raise HTTPException(status_code=404, detail="Event not found")
-    # Enforce sum of max_quantity of active types does not exceed event capacity (ignoring None)
-    existing_sum = (
-        db.query(func.coalesce(func.sum(TicketType.max_quantity), 0))
-        .filter(TicketType.event_id == event_id, TicketType.active == True, TicketType.max_quantity.isnot(None))
-        .scalar()
-    )
-    add_qty = payload.max_quantity or 0
-    if existing_sum + add_qty > ev.capacity:
-        raise HTTPException(status_code=400, detail="Total ticket type quantities exceed event capacity")
+    # Event capacity constraint removed; rely on per-type max_quantity only.
     tt = TicketType(
         event_id=event_id,
         name=payload.name,
@@ -198,29 +262,62 @@ def create_ticket_type(event_id: int, payload: TicketTypeCreate, db: Session = D
     return tt
 
 
+@router.get("/public/{public_id}", response_model=EventRead)
+def resolve_event(public_id: str, db: Session = Depends(db_session)):
+    ev = db.query(Event).filter(Event.public_id == public_id).first()
+    if not ev:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return ev
+
+
+@router.get("/{event_id}/promotion", response_model=EventPromotionRead)
+def get_event_promotion(event_id: int, db: Session = Depends(db_session)):
+    ev = db.get(Event, event_id)
+    if not ev:
+        raise HTTPException(status_code=404, detail="Event not found")
+    ep = db.query(EventPromotion).filter(EventPromotion.event_id == event_id).one_or_none()
+    content = ep.content if ep and ep.content else {}
+    return {
+        "event_id": event_id,
+        "description": content.get("description"),
+        "speakers": content.get("speakers"),
+        "audience": content.get("audience"),
+    }
+
+
+@router.put("/{event_id}/promotion", response_model=EventPromotionRead)
+def upsert_event_promotion(event_id: int, payload: EventPromotionUpsert, db: Session = Depends(db_session)):
+    ev = db.get(Event, event_id)
+    if not ev:
+        raise HTTPException(status_code=404, detail="Event not found")
+    ep = db.query(EventPromotion).filter(EventPromotion.event_id == event_id).one_or_none()
+    content = {
+        "description": payload.description,
+        "speakers": payload.speakers,
+        "audience": payload.audience,
+    }
+    if not ep:
+        ep = EventPromotion(event_id=event_id, content=content)
+        db.add(ep)
+    else:
+        ep.content = content
+        db.add(ep)
+    db.commit()
+    return {
+        "event_id": event_id,
+        "description": content.get("description"),
+        "speakers": content.get("speakers"),
+        "audience": content.get("audience"),
+    }
+
+
 @router.patch("/ticket_types/{ticket_type_id}", response_model=TicketTypeRead)
 def update_ticket_type(ticket_type_id: int, payload: TicketTypeUpdate, db: Session = Depends(db_session)):
     tt = db.get(TicketType, ticket_type_id)
     if not tt:
         raise HTTPException(status_code=404, detail="Ticket type not found")
     ev = db.get(Event, tt.event_id)
-    # Compute prospective sum if changing max_quantity or active
-    new_active = tt.active if payload.active is None else payload.active
-    new_max = tt.max_quantity if payload.max_quantity is None else payload.max_quantity
-    # Sum other active types
-    others_sum = (
-        db.query(func.coalesce(func.sum(TicketType.max_quantity), 0))
-        .filter(
-            TicketType.event_id == tt.event_id,
-            TicketType.id != tt.id,
-            TicketType.active == True,
-            TicketType.max_quantity.isnot(None),
-        )
-        .scalar()
-    )
-    candidate_sum = others_sum + (new_max or 0)
-    if new_active and candidate_sum > ev.capacity:
-        raise HTTPException(status_code=400, detail="Total ticket type quantities exceed event capacity")
+    # Event capacity constraint removed; rely on per-type max_quantity only.
     if payload.name is not None:
         tt.name = payload.name
     if payload.price_baht is not None:

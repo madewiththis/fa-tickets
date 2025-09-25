@@ -1,0 +1,15 @@
+{{ buyer_name }} has reserved a {{ ticket_type_name }} ticket for you to {{ event_title }}.
+Your reservation will expire on {{ reservation_expires_at }} unless payment is completed.
+
+Event Details
+{{ event_title }}
+{{ event_datetime }}
+
+{% if ticket_lines %}Tickets
+{{ ticket_lines }}
+Total due: {{ total_thb }}
+{% endif %}
+
+Ticket Details
+Ticket Number: {{ ticket_number }}
+{% if view_ticket_link %}View your ticket: {{ view_ticket_link }}{% endif %}

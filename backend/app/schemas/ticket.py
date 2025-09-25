@@ -16,6 +16,7 @@ class TicketRead(BaseModel):
 
 class AttendeeRead(BaseModel):
     ticket_id: int
+    ticket_number: str | None = None
     short_code: str | None
     status: str
     payment_status: str | None = None
@@ -25,6 +26,8 @@ class AttendeeRead(BaseModel):
     last_name: str | None
     email: str | None
     phone: str | None
+    purchase_id: int | None = None
+    external_payment_ref: str | None = None
 
     class Config:
         from_attributes = True

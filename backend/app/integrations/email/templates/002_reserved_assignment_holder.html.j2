@@ -1,0 +1,5 @@
+<p><strong>{{ buyer_name }}</strong> has reserved a <strong>{{ ticket_type_name }}</strong> ticket for you to <strong>{{ event_title }}</strong>.</p>
+<p>Your reservation will expire on <strong>{{ reservation_expires_at }}</strong> unless payment is completed.</p>
+<p><strong>Event Details</strong><br/>{{ event_title }}<br/>{{ event_datetime }}</p>
+{% if ticket_lines %}<p><strong>Tickets</strong><br/>{{ ticket_lines }}<br/><strong>Total due:</strong> {{ total_thb }}</p>{% endif %}
+<p><strong>Ticket Details</strong><br/>Ticket Number: {{ ticket_number }}<br/>{% if view_ticket_link %}<a href="{{ view_ticket_link }}">Click here to see your ticket</a>{% endif %}</p>

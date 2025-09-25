@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../lib/api/client'
+import { PageHeader, Stat } from '@/components/kit'
+import { Card, CardContent } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
 
 export default function ReportsPage() {
   const [eventId, setEventId] = useState<number | ''>('' as any)
@@ -52,28 +56,31 @@ export default function ReportsPage() {
   }
 
   return (
-    <section>
-      <h2>Reports</h2>
-      <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
-        <select value={scope} onChange={e=> setScope((e.target.value as 'active'|'all'))}>
-          <option value='active'>Active events</option>
-          <option value='all'>All events</option>
-        </select>
-        <select
-          value={eventId}
-          onChange={e=> setEventId(e.target.value ? Number(e.target.value) : '' as any)}
-          style={{ minWidth: 360 }}
-        >
-          <option value=''>Select event… {loadingEvents ? '(loading…)': ''}</option>
-          {filtered.map((ev:any) => (
-            <option key={ev.id} value={ev.id}>
-              #{ev.id} • {ev.title} • {ev.starts_at ? new Date(ev.starts_at).toLocaleString() : ''}
-            </option>
-          ))}
-        </select>
-        <button onClick={load} disabled={!eventId}>Load</button>
+    <section className="space-y-4">
+      <PageHeader title="Reports" />
+      <div className="flex flex-nowrap items-center gap-2">
+        <Select value={scope} onValueChange={(v)=> setScope(v as any)}>
+          <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">Active events</SelectItem>
+            <SelectItem value="all">All events</SelectItem>
+          </SelectContent>
+        </Select>
+        <div className="flex-1 min-w-0">
+          <Select value={eventId ? String(eventId) : ''} onValueChange={(v)=> setEventId(v ? Number(v) : ('' as any))}>
+            <SelectTrigger className="w-full"><SelectValue placeholder={loadingEvents ? 'Loading…' : 'Select event…'} /></SelectTrigger>
+            <SelectContent>
+              {filtered.map((ev:any) => (
+                <SelectItem key={ev.id} value={String(ev.id)}>
+                  #{ev.id} • {ev.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Button onClick={load} disabled={!eventId} className="whitespace-nowrap">Load</Button>
       </div>
-      {error && <p>{error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
       {summary && (
         <ReportSummary summary={summary} />
       )}
@@ -96,28 +103,23 @@ function ReportSummary({ summary }: { summary: any }) {
   const revenue = typeof summary.revenue_baht === 'number' ? summary.revenue_baht : 0
 
   return (
-    <div style={{ marginTop: 16, padding: '12px 16px', border: '1px solid #ddd', borderRadius: 6 }}>
-      <div style={{ fontWeight: 700, marginBottom: 8 }}>{ev.title || 'Event'}</div>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(2, minmax(200px, 1fr))', gap: 12 }}>
-        <Metric label="Time until start" value={timeUntilStart} />
-        <Metric label="Event end" value={endDelta} />
-        <Metric label="Registered" value={String(registered)} />
-        <Metric label="Attended" value={String(attended)} />
-        <Metric label="Attendance rate" value={rate} />
-        <Metric label="Revenue (THB)" value={String(revenue)} />
-      </div>
-    </div>
+    <Card className="mt-2">
+      <CardContent className="pt-6">
+        <div className="font-semibold mb-2">{ev.title || 'Event'}</div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Stat label="Time until start" value={timeUntilStart} />
+          <Stat label="Event end" value={endDelta} />
+          <Stat label="Registered" value={String(registered)} />
+          <Stat label="Attended" value={String(attended)} />
+          <Stat label="Attendance rate" value={rate} />
+          <Stat label="Revenue (THB)" value={String(revenue)} />
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
-function Metric({ label, value }: { label: string, value: string }) {
-  return (
-    <div style={{ display:'flex', flexDirection:'column' }}>
-      <span style={{ color:'#555', fontSize: 12 }}>{label}</span>
-      <span style={{ fontSize: 18 }}>{value}</span>
-    </div>
-  )
-}
+function Metric() { return null }
 
 function formatDistance(a: Date, b: Date) {
   const ms = Math.abs(b.getTime() - a.getTime())

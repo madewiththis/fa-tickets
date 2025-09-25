@@ -1,0 +1,6 @@
+{% if buyer_name %}<p>Hi {{ buyer_name }},</p>{% endif %}
+<p>You have reserved {{ ticket_count }} tickets to <strong>{{ event_title }}</strong>.</p>
+<p>Your reservation will expire on <strong>{{ reservation_expires_at }}</strong>.</p>
+<p><strong>Event Details</strong><br/>{{ event_title }}<br/>{{ event_datetime }}</p>
+<p><strong>Tickets</strong><br/>{{ ticket_lines }}<br/><strong>Total due:</strong> {{ total_thb }}</p>
+{% if secure_payment_link %}<p><a href="{{ secure_payment_link }}" style="background:#0b5fff;color:#fff;padding:8px 12px;border-radius:4px;text-decoration:none;">Click here to secure your tickets</a></p>{% endif %}

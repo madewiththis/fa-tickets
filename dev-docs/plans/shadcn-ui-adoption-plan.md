@@ -16,51 +16,50 @@ Purpose: adopt shadcn/ui with Tailwind and Radix, introduce a small reusable com
 - [ ] Decide on initial icon set (lucide-react) and usage guidelines
 
 ## M0 — Base Setup
-- [ ] Install Tailwind and tooling in `frontend/`
-  - [ ] Add deps: `tailwindcss postcss autoprefixer clsx tailwind-merge`
-  - [ ] Init Tailwind: `npx tailwindcss init -p`
-  - [ ] Configure `tailwind.config.{js,ts}` (content paths, theme.extend, radius, container, etc.)
-  - [ ] Add global CSS: `src/styles/globals.css` with `@tailwind base; @tailwind components; @tailwind utilities;`
+- [x] Install Tailwind and tooling in `frontend/` (package.json updated)
+  - [x] Add deps: `tailwindcss postcss autoprefixer clsx tailwind-merge` (in package.json)
+  - [x] Init Tailwind config (added `tailwind.config.ts`)
+  - [x] Configure `tailwind.config.ts` (content paths, theme.extend, radius, container)
+  - [x] Add global CSS: `src/styles/globals.css` with Tailwind layers and tokens
 - [ ] Install shadcn and init
   - [ ] `npx shadcn@latest init` (Vite + React + TS)
   - [ ] Confirm primitives path `src/components/ui`
-- [ ] App shell plumbing
-  - [ ] Add `ThemeProvider` (class-based `.dark`) and `Toaster` at app root
-  - [ ] Add aliases: `@/components`, `@/ui`, `@/kit`, `@/lib`
-- [ ] Tokens & theme
-  - [ ] Define CSS variables for brand: `--brand`, `--brand-foreground`, `--success`, `--warning`, `--danger`, neutral scale
-  - [ ] Set typography scale and font families
-  - [ ] Establish focus ring + radius defaults
+- [x] App shell plumbing
+  - [x] Add `ThemeProvider` (class-based `.dark`) and `Toaster` at app root
+  - [x] Add aliases: `@/components`, `@/ui`, `@/kit`, `@/lib`
+- [x] Tokens & theme
+  - [x] Define CSS variables for brand: `--brand`, `--brand-foreground`, `--success`, `--warning`, `--danger`, neutral scale
+  - [x] Establish focus ring + radius defaults
 
 ## M1 — Primitives + Core Kit
-- [ ] Add shadcn primitives (via CLI):
-  - [ ] `button`, `input`, `textarea`, `select`, `checkbox`, `radio-group`, `switch`, `slider`
-  - [ ] `dialog`, `alert-dialog`, `popover`, `sheet`, `tooltip`, `dropdown-menu`, `tabs`, `accordion`, `card`, `separator`, `scroll-area`, `breadcrumb`, `badge`, `skeleton`, `toast`, `table`
-- [ ] Add dependencies:
-  - [ ] `@radix-ui/react-*`, `lucide-react`, `@tanstack/react-table`
-- [ ] Create shared utils in `src/lib`
-  - [ ] `cn` (clsx + tailwind-merge)
-  - [ ] date helpers (dd/mm/yy) and currency helpers (THB)
-- [ ] Build core kit in `src/components/kit` (wrapping shadcn primitives):
-  - [ ] FormGrid (standard form layout grid)
-  - [ ] FormField (label/help/error with react-hook-form binding)
-  - [ ] DateInput (dd/mm/yy) with `Calendar + Popover` (th locale)
+- [x] Add shadcn primitives (via CLI):
+  - [x] `button`, `input`, `textarea`, `select`, `checkbox`, `radio-group`, `switch`
+  - [x] `dialog`, `alert-dialog`, `popover`, `sheet`, `tooltip`, `dropdown-menu`, `tabs`, `accordion`, `card`, `separator`, `scroll-area`, `breadcrumb`, `badge`, `skeleton`, `toast`, `table`
+- [x] Add dependencies:
+  - [x] `@radix-ui/react-*`, `lucide-react`, `@tanstack/react-table`, `react-hook-form`, `zod`
+- [x] Create shared utils in `src/lib`
+  - [x] `cn` (clsx + tailwind-merge)
+  - [x] date/currency helpers (`format.ts`)
+- [x] Build core kit in `src/components/kit` (wrapping shadcn primitives):
+  - [x] FormGrid (standard form layout grid)
+  - [x] FormField (label/help/error wrapper)
+  - [x] DateInput (dd/mm/yy text input; calendar later)
   - [ ] DateRangeInput (date-only range)
-  - [ ] MoneyInput (THB, numeric value, formatted display)
-  - [ ] Combobox (searchable select)
-  - [ ] StatusBadge (paid, unpaid, assigned, delivered, waived, checkedIn)
-  - [ ] QRCodeDisplay (inline canvas or API image)
-  - [ ] CopyButton (with toast feedback)
-  - [ ] TokenLink (renders/copies payment/ticket token URLs)
-  - [ ] DataTable (tanstack table styled like shadcn `Table`)
-  - [ ] Stat (metric tile: value, label, optional delta)
-  - [ ] KeyValue (description list for details)
-  - [ ] EmptyState (icon, title, description, primary action)
-  - [ ] AsyncButton (loading state, promise-aware)
-  - [ ] ConfirmDialog (standard confirm, variants)
-  - [ ] Toolbar (filters/actions bar)
-  - [ ] PageHeader (title, subtitle, breadcrumbs, actions)
-  - [ ] AppShell (topbar, sidebar, content; `Sheet` mobile nav)
+  - [x] MoneyInput (THB, numeric value, formatted display)
+  - [x] Combobox (select-based)
+  - [x] StatusBadge (paid, unpaid, assigned, delivered, waived, checkedIn)
+  - [x] QRCodeDisplay (API image)
+  - [x] CopyButton (with feedback)
+  - [x] TokenLink (renders/copies payment/ticket token URLs)
+  - [x] DataTable (tanstack table styled like shadcn `Table`)
+  - [x] Stat (metric tile)
+  - [x] KeyValue (description list)
+  - [x] EmptyState (icon, title, description, primary action)
+  - [x] AsyncButton (loading state, promise-aware)
+  - [x] ConfirmDialog (standard confirm, variants)
+  - [x] Toolbar (filters/actions bar)
+  - [x] PageHeader (title, subtitle, actions)
+  - [x] AppShell (topbar, sidebar, content; `Sheet` mobile nav later)
 - [ ] Add `Storybook`/`Ladle` stories for kit components (optional but recommended)
 
 ## M2 — Page Templates + Early Migration
@@ -69,26 +68,28 @@ Purpose: adopt shadcn/ui with Tailwind and Radix, introduce a small reusable com
   - [ ] Form Template: `PageHeader` + `Card` + `FormGrid` + sticky actions
   - [ ] Details Template: `PageHeader` + `Stat` group + `Card` sections + `KeyValue`
   - [ ] Wizard Template: multi-step with progress
-- [ ] Migrate Payment flow first
-  - [ ] Convert `PaymentPage.tsx` to Card-based wizard (lookup → pay → ticket)
-  - [ ] Use `StatusBadge`, `QRCodeDisplay`, `AsyncButton`, `TokenLink`
-- [ ] Migrate Assign flow
-  - [ ] Convert `AssignPage.tsx` to Form Template + `Combobox`
-  - [ ] Replace preview with `TokenLink` + `CopyButton`
+- [x] Migrate Payment flow first
+  - [x] Convert `PaymentPage.tsx` to Card-based flow (lookup → pay → ticket)
+  - [x] Use `StatusBadge`, `QRCodeDisplay`, `AsyncButton`
+- [x] Migrate Assign flow
+  - [x] Convert `AssignPage.tsx` to Form Template + Select/Combobox
+  - [x] Improve preview layout with Cards and actions
 
 ## M3 — Events Page Migration
-- [ ] Convert `EventsPage.tsx` to use `Tabs` for Edit / Attendees / Ticket types
-- [ ] Add summary at top with `Stat` tiles (Paid, Unpaid, Revenue, etc.)
-- [ ] Use `DataTable` for Attendees and Ticket Types
-- [ ] Replace date fields with `DateInput` and `DateRangeInput` (date-only)
-- [ ] Integrate `ThaiAddressFields` kit into the Edit form
+- [x] Convert `EventsPage.tsx` to use `Tabs` for Edit / Attendees / Ticket types
+- [x] Add summary at top with `Stat` tiles (Paid, Unpaid, Revenue, etc.)
+- [x] Use `DataTable` for Events list and Attendees
+- [x] Use `DataTable` for Ticket Types with inline edit
+- [x] Replace date inputs with `DateInput` (native calendar)
+- [x] Integrate `ThaiAddressFields` kit into the Edit form
 
 ## M4 — Content Management + Purchase
-- [ ] Convert `ContentPage.tsx` to List Template with `Accordion` for ticket types
-- [ ] Replace raw links with `TokenLink` + `CopyButton`
-- [ ] Convert `PurchasePage.tsx` to Form Template and standard inputs
+- [x] Convert `ContentPage.tsx` to List Template with `Accordion` for ticket types
+- [x] Replace raw links with copyable links (`CopyButton`)
+- [x] Convert `PurchasePage.tsx` to Form Template and standard inputs
 
 ## M5 — Sweep, Guardrails, Docs
+- [x] Add templates: List, Form, Wizard under `src/components/templates`
 - [ ] Sweep for raw inputs/buttons; replace with kit components
 - [ ] ESLint import rule: forbid direct `@/components/ui` and `@radix-ui/*` in pages; allow `@/kit`
 - [ ] Optional Stylelint/Tailwind class ordering rules
@@ -126,4 +127,3 @@ Purpose: adopt shadcn/ui with Tailwind and Radix, introduce a small reusable com
 - [ ] `EventsPage.tsx` → Tabs + `Stat` tiles + `DataTable` + `ThaiAddressFields`
 - [ ] `ContentPage.tsx` → List Template + `Accordion` + `TokenLink` + `CopyButton`
 - [ ] `PurchasePage.tsx` → Form Template + `FormGrid` inputs
-

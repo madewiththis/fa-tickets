@@ -1,0 +1,7 @@
+<p><strong>Event:</strong> {{ event_title }}</p>
+<p><strong>When:</strong> {{ event_when }}</p>
+{% if ticket_number %}<p><strong>Ticket Number:</strong> {{ ticket_number }}</p>{% endif %}
+<p><strong>Your check-in code:</strong> <code>{{ code }}</code></p>
+<p>Present this code (or QR) at check-in.</p>
+{% if qr_url %}<p><img alt="Ticket QR" src="{{ qr_url }}" style="width:180px;height:180px"/></p>{% endif %}
+{% if view_link %}<p><a href="{{ view_link }}" style="color:#0b5fff;">View in browser</a></p>{% endif %}
