@@ -32,21 +32,25 @@ export default function AttendeeDetailPage() {
   const navigate = useNavigate()
 
   const location = useLocation()
+  // Sync active tab with URL without triggering data refetches
+  useEffect(() => {
+    if (!contactId) return
+    if (location.pathname.endsWith('/tickets')) setActive('tickets')
+    else if (location.pathname.endsWith('/purchases')) setActive('purchases')
+    else setActive('overview')
+    // Redirect bare /attendees/:id to /overview
+    if (!/\/(overview|tickets|purchases)$/.test(location.pathname)) {
+      const segments = location.pathname.split('/')
+      if (segments.length === 3) {
+        navigate(`/attendees/${contactId}/overview`, { replace: true })
+      }
+    }
+  }, [contactId, location.pathname, navigate])
+
+  // Fetch data when the contact changes (initial load), not on every tab switch
   useEffect(() => {
     (async () => {
       if (!contactId) return
-      // Set active based on path suffix
-      if (location.pathname.endsWith('/tickets')) setActive('tickets')
-      else if (location.pathname.endsWith('/purchases')) setActive('purchases')
-      else setActive('overview')
-      // Redirect bare /attendees/:id to /overview
-      if (!/\/(overview|tickets|purchases)$/.test(location.pathname)) {
-        // only if exact /attendees/:id
-        const segments = location.pathname.split('/')
-        if (segments.length === 3) {
-          navigate(`/attendees/${contactId}/overview`, { replace: true })
-        }
-      }
       setLoading(true); setError('')
       try {
         const c = await api.getContact(contactId)
@@ -57,7 +61,7 @@ export default function AttendeeDetailPage() {
         setError(e.message || 'Failed to load contact')
       } finally { setLoading(false) }
     })()
-  }, [contactId, location.pathname])
+  }, [contactId])
 
   async function openPurchase(purchaseId: number) {
     try { setPurchase(await api.getPurchase(purchaseId)) } catch {}
@@ -132,7 +136,7 @@ export default function AttendeeDetailPage() {
                 ].map((it:any) => (
                   <button
                     key={it.key}
-                    onClick={() => { setActive(it.key as any); navigate(it.href) }}
+                    onClick={() => { setActive(it.key as any); if (it.href) navigate(it.href) }}
                     className={`text-left px-3 py-2 rounded border ${active === it.key ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}
                   >{it.label}</button>
                 ))}
@@ -158,30 +162,26 @@ export default function AttendeeDetailPage() {
               <CardContent className="pt-2">
                 {active === 'overview' && (
                   <div className="grid md:grid-cols-2 gap-4">
-                    <Link to={`/attendees/${contactId}/purchases`} className="block">
-                    <Card className="transition-colors hover:bg-secondary">
+                    <Card className="transition-colors hover:bg-secondary cursor-pointer" onClick={()=> { setActive('purchases'); navigate(`/attendees/${contactId}/purchases`) }}>
                       <CardHeader className="pb-1"><CardTitle className="text-sm">Purchases</CardTitle></CardHeader>
                       <CardContent className="pt-2">
                         <ul className="text-sm space-y-1">
                           {contact.buyer?.events?.map((ev:any) => (
                             <li key={ev.event_id} className="flex items-center justify-between">
                               <span>{ev.title || `Event #${ev.event_id}`} ({ev.tickets} tickets)</span>
-                              <Button size="sm" variant="outline" onClick={()=> { showPurchasesForEvent(ev.event_id); navigate(`/attendees/${contactId}/purchases`) }}>View purchases</Button>
+                              <Button size="sm" variant="outline" onClick={()=> { showPurchasesForEvent(ev.event_id); setActive('purchases'); navigate(`/attendees/${contactId}/purchases`) }}>View purchases</Button>
                             </li>
                           ))}
                           {(!contact.buyer?.events || contact.buyer.events.length === 0) && <li className="text-muted-foreground">No purchases</li>}
                         </ul>
                       </CardContent>
                     </Card>
-                    </Link>
-                    <Link to={`/attendees/${contactId}/tickets`} className="block">
-                    <Card className="transition-colors hover:bg-secondary">
+                    <Card className="transition-colors hover:bg-secondary cursor-pointer" onClick={()=> { setActive('tickets'); navigate(`/attendees/${contactId}/tickets`) }}>
                       <CardHeader className="pb-1"><CardTitle className="text-sm">Tickets (as attendee)</CardTitle></CardHeader>
                       <CardContent className="pt-2">
                         <div className="text-sm">Tickets held: {contact.holder?.tickets_count || 0}</div>
                       </CardContent>
                     </Card>
-                    </Link>
                   </div>
                 )}
 

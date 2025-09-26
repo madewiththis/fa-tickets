@@ -140,7 +140,7 @@ def assign_ticket(
             event_dt = f"{s_str}{(' — ' + e_str) if e_str else ''}"
             expires = (_dt.datetime.now(_dt.timezone.utc) + _dt.timedelta(hours=24)).strftime('%d/%m/%Y %I:%M%p UTC')
             app_origin2 = os.getenv("PUBLIC_APP_ORIGIN", "http://localhost:5173")
-            view_link = f"{app_origin2}/ticket?token={ticket.uuid}"
+            view_link = f"{app_origin2}/ticket?ref={ticket.uuid}"
             tt_name = None
             if ticket_type_id is not None:
                 tt = db.get(TicketType, ticket_type_id)
@@ -162,7 +162,7 @@ def assign_ticket(
         api_origin = os.getenv("PUBLIC_API_ORIGIN", os.getenv("API_BASE_URL", "http://localhost:8000"))
         qr_url = f"{api_origin}/qr?data={code}&scale=6&format=png"
         app_origin2 = os.getenv("PUBLIC_APP_ORIGIN", "http://localhost:5173")
-        view_link = f"{app_origin2}/ticket?token={ticket.uuid}"
+        view_link = f"{app_origin2}/ticket?ref={ticket.uuid}"
         try:
             subject, text, html = templates.ticket_email(ev.title, event_when, code, qr_url, view_link, ticket.ticket_number)
             ok = send_and_log(to_email=customer_email, subject=subject, text=text, html=html, template_name='ticket_email', context={'event_id': ev.id, 'code': code}, db=db, related={'event_id': ev.id, 'ticket_id': ticket.id})

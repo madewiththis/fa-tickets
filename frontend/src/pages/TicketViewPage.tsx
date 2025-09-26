@@ -24,11 +24,10 @@ export default function TicketViewPage() {
     })()
   }, [code, token])
 
-  const apiBase = (import.meta as any).env.DEV ? '' : ((import.meta as any).env.VITE_API_BASE || '')
   const qrUrl = useMemo(() => {
     const c = data?.ticket?.code
-    return c ? `${apiBase}/qr?data=${encodeURIComponent(c)}&scale=6&format=png` : null
-  }, [data, apiBase])
+    return c ? api.qrUrl(String(c), 6) : null
+  }, [data])
 
   return (
     <div className="container mx-auto max-w-lg p-4">

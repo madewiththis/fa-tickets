@@ -18,7 +18,7 @@ from app.api.routes.utils import router as utils_router
 from app.api.routes.purchases import router as purchases_router
 from app.api.routes.contacts import router as contacts_router
 
-app = FastAPI(title="FA Tickets MVP")
+app = FastAPI(title="FlowEvents")
 
 # CORS for frontend dev
 app.add_middleware(

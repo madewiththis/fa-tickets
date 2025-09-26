@@ -337,7 +337,7 @@ def resend_ticket(req: ResendRequest, db: Session = Depends(db_session)):
     api_origin = os.getenv("PUBLIC_API_ORIGIN", os.getenv("API_BASE_URL", "http://localhost:8000"))
     qr_url = f"{api_origin}/qr?data={t.short_code}&scale=6&format=png"
     app_origin2 = os.getenv("PUBLIC_APP_ORIGIN", "http://localhost:5173")
-    view_link = f"{app_origin2}/ticket?token={t.uuid}"
+    view_link = f"{app_origin2}/ticket?ref={t.uuid}"
     subject, text, html = templates.ticket_email(ev.title if ev else "Event", event_when, t.short_code, qr_url, view_link, t.ticket_number)
     ok = send_and_log(to_email=t.customer.email, subject=subject, text=text, html=html, template_name='ticket_email', context={'event_id': ev.id if ev else None, 'code': t.short_code}, db=db, related={'event_id': ev.id if ev else None, 'ticket_id': t.id})
     if not ok:

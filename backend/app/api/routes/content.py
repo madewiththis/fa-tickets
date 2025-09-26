@@ -212,7 +212,7 @@ def content_checkout_multi(req: MultiCheckoutRequest, db: Session = Depends(db_s
                     buyer_name = (req.buyer.first_name or '') + ((' ' + req.buyer.last_name) if req.buyer.last_name else '')
                     expires = (datetime.now(timezone.utc) + timedelta(hours=24)).strftime('%d/%m/%Y %I:%M%p UTC')
                     app_origin2 = os.getenv("PUBLIC_APP_ORIGIN", "http://localhost:5173")
-                    view_link = f"{app_origin2}/ticket?token={ticket.uuid}"
+                    view_link = f"{app_origin2}/ticket?ref={ticket.uuid}"
                     line = f"1 x {tt.name} — {tt.price_baht or 0} THB each"
                     send_reserved_assignment_holder(
                         db,

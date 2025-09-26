@@ -12,11 +12,11 @@ import PublicEventPage from './pages/PublicEventPage'
 import TicketViewPage from './pages/TicketViewPage'
 import MultiPurchasePage from './pages/MultiPurchasePage'
 import InvoicePage from './pages/InvoicePage'
-import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
+import { NavLink, Route, Routes, useLocation, Navigate } from 'react-router-dom'
 import { useState } from 'react'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { Menu, Search, Drama, ScanQrCode, ChartLine, LayoutDashboard, Shield } from 'lucide-react'
+import { Menu, Search, Drama, ScanQrCode, ChartLine, Shield } from 'lucide-react'
 import AdminEmailLogsPage from './pages/AdminEmailLogsPage'
 import { ThemeToggle } from '@/components/kit'
 
@@ -43,7 +43,6 @@ export default function App() {
                 </SheetTrigger>
                 <SheetContent side="right">
                   <nav className="grid gap-2 mt-6">
-                    <NavLink to="/dashboard" onClick={()=> setMenuOpen(false)} className={({ isActive }) => `px-3 py-2 rounded border inline-flex items-center gap-1 ${isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}><LayoutDashboard className="h-4 w-4" /> Dashboard</NavLink>
                     <NavLink to="/events" onClick={()=> setMenuOpen(false)} className={({ isActive }) => `px-3 py-2 rounded border inline-flex items-center gap-1 ${isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}><Drama className="h-4 w-4" /> Events</NavLink>
                     <NavLink to="/attendees" onClick={()=> setMenuOpen(false)} className={({ isActive }) => `px-3 py-2 rounded border inline-flex items-center gap-1 ${isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}><Search className="h-4 w-4" /> Tickets</NavLink>
                     <NavLink to="/checkin" onClick={()=> setMenuOpen(false)} className={({ isActive }) => `px-3 py-2 rounded border inline-flex items-center gap-1 ${isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}><ScanQrCode className="h-4 w-4" /> Check in</NavLink>
@@ -59,7 +58,6 @@ export default function App() {
       </div>
       {!hideNav && (
         <nav className="mb-8 hidden sm:flex flex-wrap gap-2">
-          <NavLink to="/dashboard" className={({ isActive }) => `px-3 py-1 rounded border inline-flex items-center gap-1 ${isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}><LayoutDashboard className="h-4 w-4" /> Dashboard</NavLink>
           <NavLink to="/events" className={({ isActive }) => `px-3 py-1 rounded border inline-flex items-center gap-1 ${isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}><Drama className="h-4 w-4" /> Events</NavLink>
           <NavLink to="/attendees" className={({ isActive }) => `px-3 py-1 rounded border inline-flex items-center gap-1 ${isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}><Search className="h-4 w-4" /> Tickets</NavLink>
           <NavLink to="/checkin" className={({ isActive }) => `px-3 py-1 rounded border inline-flex items-center gap-1 ${isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}><ScanQrCode className="h-4 w-4" /> Check in</NavLink>
@@ -69,7 +67,7 @@ export default function App() {
       )}
       <div className="min-h-[60vh]">
         <Routes>
-          <Route path="/" element={<DashboardPage />} />
+          <Route path="/" element={<Navigate to="/events" replace />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/events/new" element={<EventsPage />} />
