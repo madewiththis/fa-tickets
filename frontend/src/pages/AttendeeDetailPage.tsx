@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { ChevronLeft, HandCoins, TicketCheck, ScanEye, Send, Copy, TicketMinus, MoreHorizontal, Mail, RotateCcw, X } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
 
 export default function AttendeeDetailPage() {
@@ -122,9 +123,49 @@ export default function AttendeeDetailPage() {
           <span className="sr-only sm:not-sr-only sm:inline">Back to Attendees</span>
         </Link>
       </div>
-      {loading && <p>Loading…</p>}
       {error && <p className="text-sm text-destructive">{error}</p>}
-      {contact && (
+      {loading && !contact ? (
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_3fr] gap-6">
+          <nav className="w-full md:w-56 lg:w-64">
+            <div className="sticky top-4">
+              <div className="grid gap-2">
+                <Skeleton className="h-9" />
+                <Skeleton className="h-9" />
+                <Skeleton className="h-9" />
+              </div>
+            </div>
+          </nav>
+          <div>
+            <Card>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-5 w-48 mb-2" />
+                <Skeleton className="h-4 w-64" />
+                <div className="mt-2 flex gap-2">
+                  <Skeleton className="h-5 w-24" />
+                  <Skeleton className="h-5 w-24" />
+                </div>
+              </CardHeader>
+              <CardContent className="pt-2">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader className="pb-1"><Skeleton className="h-4 w-24" /></CardHeader>
+                    <CardContent className="pt-2 space-y-2">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-5/6" />
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-1"><Skeleton className="h-4 w-40" /></CardHeader>
+                    <CardContent className="pt-2 space-y-2">
+                      <Skeleton className="h-4 w-1/2" />
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      ) : contact && (
         <div className="grid grid-cols-1 md:grid-cols-[1fr_3fr] gap-6">
           <nav className="w-full md:w-56 lg:w-64">
             <div className="sticky top-4">
