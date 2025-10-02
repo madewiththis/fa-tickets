@@ -81,111 +81,127 @@ Notes:
 ## Migration Strategy (Phased)
 
 Phase 0 — Plan, Duplicate, and Baseline
-- Decide coexistence approach and folder layout: add `/web` for Next.js.
-- Freeze new feature development in `/frontend` to reduce divergence (critical bugfixes only).
-- Create Next app: `npx create-next-app@latest --ts` in `/web`.
-- Add Tailwind, shadcn/ui, next-themes; port tokens and globals.
-- Add `next.config.js` rewrite for `/api/:path*` → `http://localhost:8000/:path*`.
-- Add `.env.local` with `NEXT_PUBLIC_API_BASE=/api` and (optionally) `NEXT_PUBLIC_API_TOKEN`.
-- CI: add a job to build `/web` to avoid drift.
+- [x] Decide coexistence approach and folder layout: add `/web` for Next.js.
+- [x] Freeze new feature development in `/frontend` (critical fixes only).
+- [x] Create Next app: `npx create-next-app@latest --ts` in `/web`.
+- [x] Add Tailwind and next-themes; initial globals.
+- [x] Add `next.config.js` rewrite for `/api/:path*` → backend.
+- [x] Add `.env.local` with `NEXT_PUBLIC_API_BASE=/api` and optional token.
+- [ ] CI: add a job to build `/web` to avoid drift.
+- [x] CI: add a job to build `/web` to avoid drift.
 
 Acceptance:
-- Next dev server runs; `/` redirects to `/events`; header/nav renders (Dashboard hidden).
+- [x] Next dev server runs; `/` redirects to `/events`; header/nav renders (Dashboard hidden).
 
 Phase 1 — Shared Libs and API Client
-- Copy `frontend/src/lib` → `web/src/lib` and switch env access:
-  - Replace `import.meta.env` with `process.env.NEXT_PUBLIC_*`.
-  - Keep API contract identical. Ensure QR helpers use `/api/qr`.
-- Create a light `utils/router.ts` shim for common navigation helpers if needed.
+- [x] Port `lib/api/client.ts` (use `process.env.NEXT_PUBLIC_*`).
+- [x] Port `lib/format.ts` helpers.
+- [x] Support SSR fetch base (use `BACKEND_ORIGIN` on server; `/api` on client).
+- [ ] Port remaining shared libs (utils/devlog as needed).
+- [ ] (Optional) Add `utils/router.ts` shim.
 
 Acceptance:
-- Test a dummy page in Next that calls the backend via `api.listEvents()` through `/api` rewrite.
+- [x] Events page calls backend via `api.listEvents()` through `/api` rewrite.
 
 Phase 2 — App Layout & Navigation
-- Implement `app/layout.tsx` replicating AppShell: branding, top nav, mobile sheet, ThemeToggle.
-- Hide Dashboard; default `/` → redirect to `/events`.
-- Migrate `globals.css` and Tailwind config; validate dark mode.
+- [x] Implement `app/layout.tsx` (AppShell-lite): branding + top nav.
+- [x] Hide Dashboard; default `/` → redirect to `/events`.
+- [x] Tailwind config migrated; next-themes provider enabled (darkMode: class).
+- [x] Add ThemeToggle and polish active nav states.
+- [ ] Add mobile sheet (after shadcn/ui integration).
 
 Acceptance:
-- `/events` page shell renders in Next with correct nav and theming.
+- [x] `/events` page shell renders in Next with nav and theming.
 
 Phase 3 — Events List (Server + Client)
-- Implement `app/events/page.tsx`.
-- Data fetch: server component for events list; client widgets for filters/search.
-- Reconciliation stats and ticket types fetched in parallel; preserve current KPIs.
+- [x] Create `app/events/page.tsx` with server-side fetch.
+- [x] Add client widgets for search/filters.
+- [x] Fetch reconciliation stats and ticket types in parallel; show KPIs.
+- [x] Actions/links parity (Details/Tickets/Invite/Promote/Attendees).
+- [x] Add "New Event" button and creation form under `/events/new`.
 
-Acceptance:
-- Visual and functional parity for `/events` list (counts, badges, actions, links).
+ Acceptance:
+ - [ ] Visual and functional parity for `/events` list (counts, badges, actions, links).
 
 Phase 4 — Event Editor + Subroutes
-- Create nested routes: `/events/[id]/overview`, `/attendees`, `/purchases`, `/ticket-types`, `/promote`, `/invite`.
-- Keep tab subroutes; ensure tab changes do not refetch whole page (client state maintained where applicable).
-- Port sections incrementally; start with Overview and Attendees.
+- [x] Add placeholder `/events/[id]/overview`.
+- [x] Add `/events/[id]` base redirect and shared layout with tabs.
+- [x] Add `Details` tab and make it default.
+- [x] Port Overview (server stats) and Attendees (basic list).
+- [x] Add remaining tab subroutes (Purchases, Ticket Types, Promote, Invite).
+- [x] Optimize with loading UI (route segment `loading.tsx` skeletons).
+- [ ] Evaluate caching for server fetches (revalidate) after UX review.
 
 Acceptance:
-- Navigating between event tabs via subroutes works without flicker and matches Vite.
+- [ ] Navigating between event tabs via subroutes works smoothly and matches Vite.
 
 Phase 5 — Attendees (List + Detail)
-- `/attendees` list; `/attendees/[id]/overview|tickets|purchases` detail subroutes.
-- Preserve the no-flicker pattern by separating data fetching from tab switches.
-- Keep deep link behavior intact.
+- [x] Add placeholder `/attendees` page.
+- [x] Implement `/attendees` list with client search.
+- [x] Implement `/attendees/[id]/overview|tickets|purchases` with shared layout + tabs.
+- [x] Add loading UIs; preserve deep links and smooth tab switches.
 
 Acceptance:
-- Lists, detail, and actions (assign/unassign, resend, copy links) match behavior.
+- [ ] Lists, detail, and actions (assign/unassign, resend, copy links) match behavior.
 
 Phase 6 — Payments, Tickets, Public Pages
-- `/pay` with `searchParams` for `purchase` and `token`.
-- `/ticket` with `ref|token|code` handling; QR display via `/api/qr`.
-- `/promo/[id]` (Public event page).
+- [x] `/pay` with `searchParams` for `purchase` and `token`.
+- [x] `/ticket` with `ref|token|code` handling; QR display via `/api/qr`.
+- [x] `/promo/[id]` (Public event page).
 
 Acceptance:
-- GUID-based flows open and function; emails link to Next routes successfully in staging.
+- [ ] GUID-based flows open and function; emails link to Next routes successfully in staging.
 
 Phase 7 — Admin, Reports, Check-in, Content
-- `/admin/email-logs`, `/reports`, `/checkin`, `/content`.
+- [x] Email Logs: list + search + copy + send test email.
+- [x] Reports: event selection + reconciliation summary.
+- [x] Check-in: event selection, code validation, check-in action.
+- [x] Content: events list with ticket type links and copy.
 
 Acceptance:
-- Parity with current actions and views; CSV links and QR flows verified.
+- [ ] Parity with current actions and views; CSV links and QR flows verified.
 
 Phase 8 — QA, Pilot, and A/B Routing
-- Add e2e smoke flows (manual or Playwright) for critical paths.
-- Pilot Next on a separate host (e.g., `next.localhost:3000`) or path prefix.
-- Feature flag email links to point to Next only for pilot users.
+- [ ] Add e2e smoke flows (manual or Playwright) for critical paths.
+- [ ] Pilot Next on a separate host/path.
+- [ ] Feature flag email links to point to Next routes.
 
 Acceptance:
 - Key funnels verified; errors and logs monitored; greenlight for cutover.
 
 Phase 9 — Cutover & Rollback
-- Update reverse proxy to route primary host to Next app.
-- Keep Vite deployment available behind an alternate path/host for quick rollback.
-- Freeze Vite for new features; critical fixes backported if needed during soak.
+- [ ] Update reverse proxy to route primary host to Next app.
+- [ ] Keep Vite deployment behind alternate path/host for rollback.
+- [ ] Freeze Vite for new features; backport critical fixes during soak.
 
 Acceptance:
 - Production traffic served by Next; SLOs met; rollback plan documented.
 
 Phase 10 — Decommission Vite
-- Remove Vite app and config; or archive in a branch/tag.
-- Clean up CI steps and docs; finalize developer onboarding for Next.
+- [ ] Remove Vite app and config; or archive in a branch/tag.
+- [ ] Clean up CI steps and docs; finalize onboarding for Next.
 
 Acceptance:
 - Repo simplified; all docs updated; onboarding reflects Next-only.
 
 ## Code Changes Checklist
 
-- [ ] Add `/web` (Next.js app) with Tailwind/shadcn configured.
-- [ ] Port `globals.css` and verify Tailwind layers.
-- [ ] Create `app/layout.tsx` with AppShell and shared nav.
-- [ ] Add `app/events` pages; build Events list first.
+- [x] Add `/web` (Next.js app).
+- [x] Configure Tailwind and next-themes.
+- [ ] Configure shadcn/ui in Next.
+- [x] Add initial `globals.css` and Tailwind layers.
+- [x] Create `app/layout.tsx` with nav (Dashboard hidden).
+- [x] Add `app/page.tsx` redirect and `app/events/page.tsx` baseline list.
 - [ ] Implement `app/events/[id]/(tabs)/...` structure for subroutes.
-- [ ] Port `lib/api/client.ts` to Next, replacing `import.meta.env` with `process.env.NEXT_PUBLIC_*`.
-- [ ] Add `next.config.js` rewrites for backend API and QR endpoint.
-- [ ] Port ui/kit components; replace any react-router imports with `next/link` and `useRouter`.
-- [ ] Replace `window.location` navigations with `router.push`.
+- [x] Port `lib/api/client.ts` to Next (envs → `process.env.NEXT_PUBLIC_*`).
+- [x] Add `next.config.js` rewrites for backend API.
+- [ ] Add QR endpoint rewrite validation; ensure `qrUrl` works.
+- [ ] Port ui/kit components; replace any react-router imports with `next/link` and router.
+- [ ] Replace direct `window.location` navigations with `router.push` where applicable.
 - [ ] Replace `NavLink` active states with `usePathname` utilities.
-- [ ] Validate QR rendering via `api.qrUrl` → `/api/qr` rewrite.
 - [ ] Confirm deep-link routes and email templates point to Next URLs.
- - [ ] Add pilot flag to toggle app URL used in outbound emails.
- - [ ] Add e2e smoke tests for purchases, assignment, and payment flows.
+- [ ] Add pilot flag to toggle app URL used in outbound emails.
+- [ ] Add e2e smoke tests for purchases, assignment, and payment flows.
 
 ## Risks & Mitigations
 

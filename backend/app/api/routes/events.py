@@ -161,6 +161,7 @@ def list_event_attendees(event_id: int, db: Session = Depends(db_session)):
                 Ticket.ticket_number,
                 Ticket.status,
                 Ticket.payment_status,
+                Ticket.ticket_type_id,
                 Ticket.checked_in_at,
                 Ticket.purchase_id,
                 Purchase.external_payment_ref,

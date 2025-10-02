@@ -1,0 +1,12 @@
+{
+  "/attendees/page": "app/attendees/page.js",
+  "/reports/page": "app/reports/page.js",
+  "/admin/email-logs/page": "app/admin/email-logs/page.js",
+  "/content/page": "app/content/page.js",
+  "/checkin/page": "app/checkin/page.js",
+  "/events/[id]/promote/page": "app/events/[id]/promote/page.js",
+  "/events/[id]/invite/page": "app/events/[id]/invite/page.js",
+  "/attendees/[id]/overview/page": "app/attendees/[id]/overview/page.js",
+  "/attendees/[id]/tickets/page": "app/attendees/[id]/tickets/page.js",
+  "/attendees/[id]/purchases/page": "app/attendees/[id]/purchases/page.js"
+}

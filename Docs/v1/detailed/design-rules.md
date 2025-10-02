@@ -92,3 +92,9 @@ Date Formats
 
 Number Formats
 - all numbers (including currency) should have thousands separators
+
+Misc:
+- Search inputs should not have labels, they should have the search icon inside the input on the left, and the clear icon on the right when input has been entered. 
+- a Search button should be appended to the end of the input: 
+i.e. [[ search input ][search button with icon only]]
+- the right corners of the search input and the left corners of the search button should be square and there should be no gap between them
