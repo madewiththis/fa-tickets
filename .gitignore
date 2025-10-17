@@ -39,6 +39,7 @@ logs/
 # Database
 *.db
 *.sqlite3
+database/
 
 # Cache
 .cache/

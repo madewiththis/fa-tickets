@@ -1,7 +1,12 @@
 services:
   db:
-    image: postgres:16
-    container_name: fa_tickets_db
+    build: ./database
+    image: neillhas2ls/2ls_flow_apps:fa-tickets-database
+    container_name: fa-app-tickents-database
+    labels:
+      - "app=fa-tickets"
+      - "service=database"
+      - "version=1.0"
     environment:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: app
@@ -9,7 +14,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - ./database:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U app -d fa_tickets"]
       interval: 5s
@@ -17,7 +22,12 @@ services:
       retries: 10
   app:
     build: ./backend
-    container_name: fa_tickets_app
+    image: neillhas2ls/2ls_flow_apps:fa-tickets-backend
+    container_name: fa-app-tickents-backend
+    labels:
+      - "app=fa-tickets"
+      - "service=backend"
+      - "version=1.0"
     environment:
       DATABASE_URL: postgresql+psycopg://app:app@db:5432/fa_tickets
       BACKEND_PORT: "8000"
@@ -31,5 +41,17 @@ services:
     volumes:
       - ./backend:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-volumes:
-  db_data:
+  frontend:
+    build: ./frontend
+    image: neillhas2ls/2ls_flow_apps:fa-tickets-frontend
+    container_name: fa-app-tickents-frontend
+    labels:
+      - "app=fa-tickets"
+      - "service=frontend"
+      - "version=1.0"
+    environment:
+      BACKEND_ORIGIN: http://app:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - app
