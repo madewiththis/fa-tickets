@@ -1,6 +1,6 @@
 export function formatTHB(amount: number | null | undefined) {
-  if (amount == null || isNaN(amount)) return '-'
-  return new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 }).format(amount)
+  if (amount == null || isNaN(amount as any)) return '-'
+  return new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 }).format(Number(amount))
 }
 
 export function formatNumber(n: number | null | undefined) {
@@ -9,8 +9,8 @@ export function formatNumber(n: number | null | undefined) {
 }
 
 export function formatAmount(amount: number | null | undefined, currency?: string | null) {
-  if (amount == null || isNaN(amount)) return '—'
-  if ((currency || '').toUpperCase() === 'THB') return formatTHB(amount)
+  if (amount == null || isNaN(amount as any)) return '—'
+  if ((currency || '').toUpperCase() === 'THB') return formatTHB(Number(amount))
   const num = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Number(amount))
   return currency ? `${num} ${currency}` : num
 }
@@ -24,3 +24,4 @@ export function formatDateDDMMYY(iso?: string | null) {
   const yy = String(d.getFullYear()).slice(-2)
   return `${dd}/${mm}/${yy}`
 }
+

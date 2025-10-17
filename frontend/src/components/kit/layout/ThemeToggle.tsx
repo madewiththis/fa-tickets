@@ -1,18 +1,22 @@
-import React from 'react'
-import { useTheme, Theme } from '@/components/providers/theme'
-import { Button } from '@/components/ui/button'
-import { Moon, Sun } from 'lucide-react'
+"use client"
+import { useTheme } from 'next-themes'
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
-  const next: Theme = theme === 'light' ? 'dark' : 'light'
-  const title = theme === 'dark' ? 'Switch to light' : 'Switch to dark'
+  const { resolvedTheme, setTheme } = useTheme()
+  const title = 'Toggle theme'
+  function onClick() {
+    const current = resolvedTheme === 'dark' ? 'dark' : 'light'
+    setTheme(current === 'dark' ? 'light' : 'dark')
+  }
   return (
-    <div className="flex items-center gap-2">
-      <Button variant="outline" size="sm" title={title} aria-label={title} onClick={() => setTheme(next)}>
-        {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-      </Button>
-    </div>
+    <button
+      type="button"
+      aria-label={title}
+      title={title}
+      onClick={onClick}
+      className="px-2 py-1 border rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+    >
+      Theme
+    </button>
   )
 }
-
